@@ -9,9 +9,8 @@ function candidates(guess::Status, words::WordBank) :: Set{Word}
   filter(w->isCandidate(guess, w), words)
 end
 
-# FIXME: need to handle double letters
 function isCandidate(guess::Status, word::Word) :: Bool
-  extras = copy(guess.extraLetters)
+  extras = guess.extraLetters
   for i in 1:length(word)
     # shortcut for the invalid letters
     if word[i] in guess.invalidLetters
@@ -20,18 +19,21 @@ function isCandidate(guess::Status, word::Word) :: Bool
     if guess.word[i] === missing
       # see if we can remove one of the known letters without a place
       # see if this is a valid place for that letter
-      if haskey(extras, word[i]) && extras[word[i]][i]
-        delete!(extras, word[i])
+      if haskey(extras, word[i]) 
+        if !extras[word[i]][i]
+          return false
+        end
       end
     else
-      # this needs to match the word letter
+      # this needs to match the word letter exactly
       if guess.word[i] ≠ word[i]
         return false
       end
     end
   end
-  # all extra letters need to be matched
-  return length(extras) == 0
+  
+  # we made it through the failure conditions!
+  true
 end
 
 function status(guess::Guess, resp::GuessResponse) :: Status
