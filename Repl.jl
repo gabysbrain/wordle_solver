@@ -6,6 +6,9 @@ function emptyStatus(n::Int64) :: Status
 end
 
 function mergeStatus(s1::Status, s2::Status) :: Status
+  # println("s1 $s1")
+  # println("s2 $s2")
+
   # there will be some descruction here
   s1El = copy(s1.extraLetters)
   s2El = copy(s2.extraLetters)
@@ -14,23 +17,27 @@ function mergeStatus(s1::Status, s2::Status) :: Status
     if l1 === missing && l2 === missing
       missing
     elseif l1 !== missing
-      l1
       # maybe delete this letter from s2 extra letters
       delete!(s1El, l1)
+      l1
     elseif l2 !== missing
-      l2
       delete!(s2El, l2)
+      l2
     end
   end
+  #println("w $w")
 
   unknownMask = [l===missing for l in w]
+  #println("unknownMask $unknownMask")
   ls = union(s1El, s2El)
   # fix the possible positions
   ls = Dict(map(ls) do (k,v)
     k => v .& unknownMask
   end)
+  #println("ls $ls")
 
   bls = union(s1.invalidLetters, s2.invalidLetters)
+  #println("bls $bls")
 
   Status(w, ls, bls)
 end
@@ -75,12 +82,23 @@ wordLength = 5 # FIXME: figure this out from word bank
 cands = wordBank
 stat = emptyStatus(wordLength)
 
+# s1 = status(collect("tares"), parseMask("nnnnm"))
+# s2 = status(collect("downs"), parseMask("nnmnm"))
+# s3 = status(collect("slimy"), parseMask("ymynn"))
+
+# println(s1)
+# sNext = mergeStatus(s1, s2)
+# println(sNext)
+# sNext = mergeStatus(sNext, s3)
+# println(sNext)
+
 while length(cands) > 1
-  println(stat)
   s = prompt(cands)
 
   global stat = mergeStatus(s, stat)
   global cands = candidates(stat, cands)
+
+  println(stat)
 end
 
 if length(cands) == 1
