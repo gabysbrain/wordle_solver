@@ -9,62 +9,47 @@ function candidates(guess::Status, words::WordBank) :: Set{Word}
   filter(w->isCandidate(guess, w), words)
 end
 
+# FIXME: this doesn't correctly account for must include letters
 function isCandidate(guess::Status, word::Word) :: Bool
-  extras = guess.extraLetters
-  for i in 1:length(word)
-    # shortcut for the invalid letters
-    if word[i] in guess.invalidLetters
-      return false
-    end
-    if guess.word[i] === missing
-      # see if we can remove one of the known letters without a place
-      # see if this is a valid place for that letter
-      if haskey(extras, word[i]) 
-        if !extras[word[i]][i]
-          return false
-        end
-      end
-    else
-      # this needs to match the word letter exactly
-      if guess.word[i] ≠ word[i]
-        return false
-      end
-    end
-  end
-  
-  # we made it through the failure conditions!
-  true
+  isCand = [l∈g for (g, l) in zip(guess, word)]
+  all(isCand)
 end
 
 function status(guess::Guess, resp::GuessResponse) :: Status
-  # set up the default mask for any extra letters
-  extraLetterMask = fill(true, 5)
-  extraLetterMask[findall(==(Exact), resp)] .= false
+  N = length(guess)
 
-  # elements of the status
-  extraLetters = Dict()
-  badLetters = Set()
-  statusWord :: Vector{StatusLetter} = fill(missing, length(guess))
+  s = emptyStatus(N)
 
-  # go through the guess and response one by one to see how to adjust status
   for (i, (l, r)) in enumerate(zip(guess, resp))
-    if r == Exact
-      statusWord[i] = l
+    # See what responses we have left
+    if     r == Exact
+      s[i] = Set([l]) # singleton candidate
     elseif r == Exists
-      # The only thing we know about the location is that the letter is not here
-      if haskey(extraLetters, l)
-        extraLetters[l][i] = false
-      else
-        m = copy(extraLetterMask)
-        m[i] = false
-        extraLetters[l] = m
+      # The only thing we know now is that this letter is not here
+      pop!(s[i], l)
+    else   # Fail
+      # remove this letter from all places
+      for cands in s
+        # don't eliminate a single candidate
+        if length(cands) == 1
+          continue
+        end
+        pop!(cands, l)
       end
-    else
-      push!(badLetters, l)
     end
   end
 
-  Status(statusWord, extraLetters, badLetters)
+  s
+end
+
+function emptyStatus(n::Int64) :: Status
+  map(1:n) do _
+    Set('a':'z') 
+  end
+end
+
+function mergeStatus(s1::Status, s2::Status) :: Status
+  [intersect(c1, c2) for (c1,c2) in zip(s1, s2)]
 end
 
 function countMasks(word::Word, possibilities::WordBank) :: Dict{GuessResponse,Int64}
