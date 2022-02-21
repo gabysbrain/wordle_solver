@@ -36,7 +36,9 @@ function updateStatus!(status::Status, guess::Guess, resp::GuessResponse)
         if length(cands) == 1
           continue
         end
-        pop!(cands, l)
+        if l in cands
+          pop!(cands, l)
+        end
       end
     end
   end
