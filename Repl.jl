@@ -17,7 +17,7 @@ function parseMask(maskStr::String) :: GuessResponse
   end
 end
 
-function prompt(cands::WordBank) :: Status
+function prompt(cands::WordBank) :: Tuple{Word, GuessResponse}
   println("$(length(cands)) words in bank")
 
   println("top 10")
@@ -33,7 +33,7 @@ function prompt(cands::WordBank) :: Status
   print("mask (y/n/m)? ")
   inputMask = readline()
 
-  status(collect(inputWord), parseMask(inputMask))
+  (collect(inputWord), parseMask(inputMask))
 end
 
 # start with all words possible
@@ -52,9 +52,9 @@ stat = emptyStatus(wordLength)
 # println(sNext)
 
 while length(cands) > 1
-  s = prompt(cands)
+  w, r = prompt(cands)
 
-  global stat = mergeStatus(s, stat)
+  updateStatus!(stat, w, r)
   global cands = candidates(stat, cands)
 
   println(stat)

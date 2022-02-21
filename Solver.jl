@@ -11,22 +11,24 @@ end
 
 # FIXME: this doesn't correctly account for must include letters
 function isCandidate(guess::Status, word::Word) :: Bool
-  isCand = [l∈g for (g, l) in zip(guess, word)]
-  all(isCand)
+  isCand = [l∈g for (g, l) in zip(guess.word, word)]
+  nonExactLetters = Set([l for (g, l) in zip(guess.word, word) if length(g) > 1])
+  all(isCand) && issubset(guess.reqChars, nonExactLetters)
 end
 
-function status(guess::Guess, resp::GuessResponse) :: Status
-  N = length(guess)
-
-  s = emptyStatus(N)
-
+function updateStatus!(status::Status, guess::Guess, resp::GuessResponse)
+  s = status.word
   for (i, (l, r)) in enumerate(zip(guess, resp))
-    # See what responses we have left
     if     r == Exact
+      # see if we've found the location of a yellow letter
+      if length(s[i]) > 1 && l ∈ status.reqChars
+        pop!(status.reqChars, l)
+      end
       s[i] = Set([l]) # singleton candidate
     elseif r == Exists
       # The only thing we know now is that this letter is not here
       pop!(s[i], l)
+      push!(status.reqChars, l)
     else   # Fail
       # remove this letter from all places
       for cands in s
@@ -38,18 +40,13 @@ function status(guess::Guess, resp::GuessResponse) :: Status
       end
     end
   end
-
-  s
 end
 
 function emptyStatus(n::Int64) :: Status
-  map(1:n) do _
+  w = map(1:n) do _
     Set('a':'z') 
   end
-end
-
-function mergeStatus(s1::Status, s2::Status) :: Status
-  [intersect(c1, c2) for (c1,c2) in zip(s1, s2)]
+  Status(w, Set())
 end
 
 function countMasks(word::Word, possibilities::WordBank) :: Dict{GuessResponse,Int64}

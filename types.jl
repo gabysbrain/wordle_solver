@@ -1,6 +1,9 @@
 
 StatusLetter = Union{Char,Missing}
-Status = Vector{Set{Char}}
+struct Status 
+  word :: Vector{Set{Char}}
+  reqChars :: Set{Char}
+end
 
 Word = Vector{Char} # words in the word bank
 WordBank = Set{Word}
