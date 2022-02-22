@@ -19,7 +19,7 @@ function newGame(word::String) :: GameState
 end
 
 function success(game :: GameState) :: Bool
-  length(game.guesses) > 0 && all([x[1]==Exact for x in last(game.guesses)])
+  length(game.guesses) > 0 && all([x==Exact for x in last(game.guesses)[2]])
 end
 
 function fail(game :: GameState) :: Bool
