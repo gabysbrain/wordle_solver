@@ -31,12 +31,12 @@ function inProgress(game :: GameState) :: Bool
   !success(game) && !fail(game)
 end
 
-function guessMask(guess :: Word, solution :: Word) :: GuessResponse
-  map(enumerate(zip(solution, guess))) do (i, (cl, gl))
-    if cl == gl
+function guessMask(guess::Word, solution::Word) :: GuessResponse
+  map(enumerate(zip(guess, solution))) do (i, (gl, sl))
+    if sl == gl
       Exact
-    elseif gl in solution[findall(guess.==cl)] # so not here but somewhere else
-                                               # don't return exists if there's an exact match somewhere
+           # don't return exists if there's an exact match somewhere else
+    elseif gl in solution[guess .!= solution] # so not here but somewhere else
       Exists
     else
       Fail
@@ -44,7 +44,7 @@ function guessMask(guess :: Word, solution :: Word) :: GuessResponse
   end
 end
 
-function guess!(guess :: Word, game :: GameState) :: Tuple{GuessResponse, GameState}
+function guess!(guess::Word, game::GameState) :: Tuple{GuessResponse, GameState}
   # construct a guess response according to the word
   resp = guessMask(guess, game.goal)
   push!(game.guesses, (guess, resp))

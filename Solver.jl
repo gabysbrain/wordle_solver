@@ -9,7 +9,6 @@ function candidates(guess::Status, words::WordBank) :: Set{Word}
   filter(w->isCandidate(guess, w), words)
 end
 
-# FIXME: this doesn't correctly account for must include letters
 function isCandidate(guess::Status, word::Word) :: Bool
   isCand = [l∈g for (g, l) in zip(guess.word, word)]
   nonExactLetters = Set([l for (g, l) in zip(guess.word, word) if length(g) > 1])
@@ -29,17 +28,17 @@ function updateStatus!(status::Status, guess::Guess, resp::GuessResponse)
       # The only thing we know now is that this letter is not here
       pop!(s[i], l)
       push!(status.reqChars, l)
-    else   # Fail
+    elseif l ∉ status.reqChars # if we need l elsewhere then just remove it from here
       # remove this letter from all places
       for cands in s
         # don't eliminate a single candidate
         if length(cands) == 1
           continue
         end
-        if l in cands
-          pop!(cands, l)
-        end
+        pop!(cands, l, nothing)
       end
+    else # Fail but we need the letter somewhere else
+      pop!(s[i], l, nothing)
     end
   end
 end

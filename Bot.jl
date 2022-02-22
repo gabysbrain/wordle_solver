@@ -58,7 +58,8 @@ function solveAllGames() :: Vector{Int64}
   end
 end
 
-#stats = solveAllGames()
-#println("avg guesses: $(average(stats))")
+stats = solveAllGames()
+println("avg guesses: $(mean(stats))")
 
-println(solveGame(newGame("pings")))
+#println(solveGame(newGame("pings")))
+
