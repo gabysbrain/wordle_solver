@@ -1,3 +1,4 @@
 [deps]
 Folds = "41a02a25-b8f0-4f67-bc48-60067656b558"
+ProgressMeter = "92933f4c-e287-5a05-a399-4b506db050ca"
 StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"

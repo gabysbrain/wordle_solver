@@ -1,12 +1,15 @@
 
 include("Solver.jl")
 
+using ProgressMeter
+using Statistics
+
 word = first(wordBank)
 initialCands = rankedCandidates(wordBank)
 
 function logStatus(cands::Vector{Tuple{Word,Float64}}, game::GameState)
   # Start with a blank slate
-  #Base.run(`clear`)
+  Base.run(`clear`)
 
   # Print the status
   println("$(length(cands)) words in bank")
@@ -29,7 +32,7 @@ function solveGame(game::GameState) :: GameState
     else
       rc = rankedCandidates(cands)
     end
-    logStatus(rc, game)
+    #logStatus(rc, game)
     if length(rc) == 0
       return game
     end
@@ -38,6 +41,8 @@ function solveGame(game::GameState) :: GameState
     g = rc[1][1]
     r, _ = guess!(g, game)
     updateStatus!(s, g, r)
+    #println("resp $r")
+    #println("stat $s")
     cands = candidates(s, cands)
   end
 
@@ -50,8 +55,8 @@ function gameStats(game::GameState) :: Int64
 end
 
 function solveAllGames() :: Vector{Int64}
-  map(enumerate(wordBank)) do (i,w)
-    println("game $i of $(length(wordBank)) - $w")
+  @showprogress map(enumerate(wordBank)) do (i,w)
+    #println("game $i of $(length(wordBank)) - $w")
     g = newGame(join(w))
     gg = solveGame(g)
     gameStats(gg)
